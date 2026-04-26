@@ -1,26 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/EventCard";
-import { Sparkles, Activity, Eye, Heart, Flame, Zap, ShieldCheck, Cloud, BarChart3, Quote } from "lucide-react";
+import type { RankedEvent } from "@/lib/trending";
+import { Sparkles, Activity, Eye, Heart, Flame, Zap, ShieldCheck, Cloud, BarChart3, Quote, Trophy, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
-  const { data: events, isLoading } = useQuery({
-    queryKey: ["events"],
+  const { data: events, isLoading } = useQuery<RankedEvent[]>({
+    queryKey: ["trending-events"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .order("updated_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      const res = await fetch("/api/trending");
+      if (!res.ok) throw new Error("Failed to load trending");
+      return res.json();
     },
     refetchInterval: 15000,
   });
+
+  const top3 = events?.slice(0, 3) ?? [];
+  const rest = events?.slice(3) ?? [];
 
   return (
     <div>
@@ -40,13 +40,31 @@ function Index() {
         </div>
       </section>
 
-      {/* Events grid */}
-      <section className="container mx-auto px-4 py-12 md:py-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="font-display text-3xl md:text-4xl">Now Showing</h2>
-            <p className="text-sm text-muted-foreground mt-1">Tap a title to dive in</p>
+      {/* Leaderboard — Top 3 */}
+      {top3.length > 0 && (
+        <section className="container mx-auto px-4 pt-12 md:pt-16">
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-trending/40 bg-trending/10 px-3 py-1 text-xs font-semibold text-trending mb-3">
+              <Trophy className="h-3.5 w-3.5" /> Top trending
+            </div>
+            <h2 className="font-display text-3xl md:text-5xl">🔥 Trending Now</h2>
+            <p className="text-sm text-muted-foreground mt-1">Ranked live by engagement & recency</p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {top3.map((e, i) => (
+              <EventCard key={e.id} {...e} rank={i + 1} featured showScore />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Rest of the radar */}
+      <section className="container mx-auto px-4 py-12 md:py-16">
+        <div className="mb-8">
+          <h2 className="font-display text-2xl md:text-3xl flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-primary" /> More on the radar
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">Tap a title to dive in</p>
         </div>
 
         {isLoading ? (
@@ -55,15 +73,15 @@ function Index() {
               <div key={i} className="aspect-[2/3] rounded-2xl bg-card animate-pulse" />
             ))}
           </div>
-        ) : events && events.length > 0 ? (
+        ) : rest.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.map((e) => <EventCard key={e.id} {...e} />)}
+            {rest.map((e, i) => <EventCard key={e.id} {...e} rank={i + 4} showScore />)}
           </div>
-        ) : (
+        ) : top3.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
             No events yet. An admin can add the first one.
           </div>
-        )}
+        ) : null}
       </section>
 
       {/* Live Stats Strip */}
