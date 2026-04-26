@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/EventCard";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Activity, Eye, Heart, Flame, Zap, ShieldCheck, Cloud, BarChart3, Quote } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
