@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
+import { Route as ApiTrendingRouteImport } from './routes/api.trending'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -34,17 +35,24 @@ const EventEventIdRoute = EventEventIdRouteImport.update({
   path: '/event/$eventId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTrendingRoute = ApiTrendingRouteImport.update({
+  id: '/api/trending',
+  path: '/api/trending',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/api/trending': typeof ApiTrendingRoute
   '/event/$eventId': typeof EventEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/api/trending': typeof ApiTrendingRoute
   '/event/$eventId': typeof EventEventIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/api/trending': typeof ApiTrendingRoute
   '/event/$eventId': typeof EventEventIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/event/$eventId'
+  fullPaths: '/' | '/admin' | '/auth' | '/api/trending' | '/event/$eventId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/event/$eventId'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/event/$eventId'
+  to: '/' | '/admin' | '/auth' | '/api/trending' | '/event/$eventId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/api/trending'
+    | '/event/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  ApiTrendingRoute: typeof ApiTrendingRoute
   EventEventIdRoute: typeof EventEventIdRoute
 }
 
@@ -99,6 +115,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventEventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/trending': {
+      id: '/api/trending'
+      path: '/api/trending'
+      fullPath: '/api/trending'
+      preLoaderRoute: typeof ApiTrendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +129,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  ApiTrendingRoute: ApiTrendingRoute,
   EventEventIdRoute: EventEventIdRoute,
 }
 export const routeTree = rootRouteImport

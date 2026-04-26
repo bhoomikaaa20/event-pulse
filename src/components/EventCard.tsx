@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Eye, Heart } from "lucide-react";
-import { trendingScore, trendingLabel } from "@/lib/trending";
+import { trendingScore, trendingLabel, type TrendTone } from "@/lib/trending";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   id: string;
@@ -11,16 +12,36 @@ interface EventCardProps {
   views_count: number;
   likes_count: number;
   updated_at: string;
+  rank?: number;
+  featured?: boolean;
+  showScore?: boolean;
 }
 
+const toneStyles: Record<TrendTone, string> = {
+  hot: "text-trending border-trending/40 bg-trending/10",
+  rising: "text-primary border-primary/40 bg-primary/10",
+  new: "text-accent-foreground border-accent/40 bg-accent/20",
+  fading: "text-muted-foreground border-border bg-background/60",
+};
+
 export function EventCard(e: EventCardProps) {
-  const trend = trendingLabel(trendingScore(e.views_count, e.likes_count, e.updated_at));
+  const score = trendingScore(e.views_count, e.likes_count, e.updated_at);
+  const trend = trendingLabel(score);
+  const featured = e.featured;
   return (
     <Link
       to="/event/$eventId"
       params={{ eventId: e.id }}
-      className="group relative block overflow-hidden rounded-2xl border border-border/40 bg-card shadow-card hover:shadow-glow transition-smooth hover:-translate-y-1"
+      className={cn(
+        "group relative block overflow-hidden rounded-2xl border bg-card shadow-card transition-smooth hover:-translate-y-1 hover:shadow-glow",
+        featured ? "border-primary/60 shadow-glow ring-1 ring-primary/30" : "border-border/40",
+      )}
     >
+      {e.rank !== undefined && e.rank <= 3 && (
+        <span className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-hero font-display text-lg font-bold text-primary-foreground shadow-glow">
+          {e.rank}
+        </span>
+      )}
       <div className="relative aspect-[2/3] overflow-hidden bg-muted">
         {e.image_url ? (
           <img
@@ -33,9 +54,15 @@ export function EventCard(e: EventCardProps) {
           <div className="flex h-full w-full items-center justify-center text-muted-foreground">No image</div>
         )}
         <div className="absolute inset-0 bg-gradient-card opacity-80" />
-        {trend && (
-          <span className="absolute top-3 left-3 rounded-full bg-background/80 backdrop-blur px-3 py-1 text-xs font-semibold text-trending border border-trending/30">
-            {trend.label}
+        <span className={cn(
+          "absolute top-3 left-3 rounded-full backdrop-blur px-3 py-1 text-xs font-semibold border",
+          toneStyles[trend.tone],
+        )}>
+          {trend.label}
+        </span>
+        {e.showScore && (
+          <span className="absolute bottom-3 right-3 rounded-full bg-background/80 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-primary border border-primary/30">
+            {Math.round(score * 10) / 10}
           </span>
         )}
         <div className="absolute bottom-0 left-0 right-0 p-4">

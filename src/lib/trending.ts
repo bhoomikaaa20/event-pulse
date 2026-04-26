@@ -1,16 +1,49 @@
 /**
- * Trending score: combines absolute popularity with recency decay.
- * Recent activity boosts the score; older events decay.
+ * PulseReel Trending Engine
+ * Formula: trendingScore = (views * 0.6) + (likes * 0.4) - timeDecay
+ * timeDecay = hoursSinceLastUpdate * decayFactor
  */
+const DECAY_FACTOR = 0.5;
+
 export function trendingScore(views: number, likes: number, updatedAt: string): number {
-  const ageHours = (Date.now() - new Date(updatedAt).getTime()) / 36e5;
-  const recency = Math.exp(-ageHours / 48); // half-life ~33h
-  return (views + likes * 5) * (0.4 + 0.6 * recency);
+  const hours = (Date.now() - new Date(updatedAt).getTime()) / 36e5;
+  const decay = hours * DECAY_FACTOR;
+  return Math.max(0, views * 0.6 + likes * 0.4 - decay);
 }
 
-export function trendingLabel(score: number): { label: string; tone: "hot" | "rising" | "steady" } | null {
-  if (score >= 500) return { label: "🔥 Trending Now", tone: "hot" };
-  if (score >= 100) return { label: "📈 Rising Fast", tone: "rising" };
-  if (score >= 25) return { label: "✨ Gaining Buzz", tone: "steady" };
-  return null;
+export type TrendTone = "hot" | "rising" | "fading" | "new";
+export interface TrendLabel { label: string; tone: TrendTone }
+
+export function trendingLabel(score: number): TrendLabel {
+  if (score >= 100) return { label: "🔥 Trending", tone: "hot" };
+  if (score >= 30) return { label: "🚀 Rising", tone: "rising" };
+  if (score > 0) return { label: "✨ Gaining Buzz", tone: "new" };
+  return { label: "💀 Fading", tone: "fading" };
+}
+
+export interface RankedEvent {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  image_url: string | null;
+  views_count: number;
+  likes_count: number;
+  updated_at: string;
+  score: number;
+  trend_label: string;
+  trend_tone: TrendTone;
+}
+
+export function rankEvents<T extends {
+  id: string; title: string; category: string; description: string;
+  image_url: string | null; views_count: number; likes_count: number; updated_at: string;
+}>(events: T[]): RankedEvent[] {
+  return events
+    .map((e) => {
+      const score = trendingScore(e.views_count, e.likes_count, e.updated_at);
+      const { label, tone } = trendingLabel(score);
+      return { ...e, score: Math.round(score * 10) / 10, trend_label: label, trend_tone: tone };
+    })
+    .sort((a, b) => b.score - a.score);
 }
