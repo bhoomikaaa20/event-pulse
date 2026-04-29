@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken";
+import EventLog from "../models/eventLog.model";
 
 // 🔹 SIGNUP
 export const signup = async (req: Request, res: Response) => {
@@ -19,15 +20,15 @@ export const signup = async (req: Request, res: Response) => {
             name,
             email,
             password: hashedPassword,
-            role: "user", // ✅ default role
+            role: "user",
         });
 
         res.json({
             id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role, // ✅ include role
-            token: generateToken(user._id.toString(), user.role), // ✅ FIXED
+            role: user.role,
+            token: generateToken(user._id.toString(), user.role),
         });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
@@ -53,8 +54,8 @@ export const login = async (req: Request, res: Response) => {
             id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role, // ✅ include role
-            token: generateToken(user._id.toString(), user.role), // ✅ FIXED
+            role: user.role,
+            token: generateToken(user._id.toString(), user.role),
         });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
@@ -63,8 +64,15 @@ export const login = async (req: Request, res: Response) => {
 
 // 🔹 GET CURRENT USER
 export const getMe = async (req: any, res: Response) => {
+    const userId = req.user.id;
+
+    // Get all events this user has liked from EventLog
+    const likeLogs = await EventLog.find({ userId, action: "LIKE" }).select("eventId");
+    const likedEvents = likeLogs.map((log: any) => log.eventId.toString());
+
     res.json({
-        id: req.user.id,
-        role: req.user.role, // ✅ NOW WORKS
+        id: userId,
+        role: req.user.role,
+        likedEvents,
     });
 };

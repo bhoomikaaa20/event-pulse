@@ -15,6 +15,8 @@ import { isAdmin } from "../middleware/admin.middleware";
 const router = express.Router();
 
 router.get("/", getEvents);
+router.get("/trending", getTrendingEvents); // ✅ Must be BEFORE /:id
+
 router.get("/:id", getEventById);
 
 router.post("/", createEvent);
@@ -26,6 +28,5 @@ router.post("/:id/like", protect, toggleLike);
 router.post("/", protect, isAdmin, createEvent);
 router.put("/:id", protect, isAdmin, updateEvent);
 router.delete("/:id", protect, isAdmin, deleteEvent);
-router.get("/trending", getTrendingEvents);
 
 export default router;

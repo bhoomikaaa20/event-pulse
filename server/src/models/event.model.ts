@@ -6,11 +6,6 @@ const eventSchema = new mongoose.Schema(
         description: String,
         image_url: String,
         category: String,
-
-        views_count: { type: Number, default: 0 },
-        likes_count: { type: Number, default: 0 },
-
-        likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
     { timestamps: true }
 );

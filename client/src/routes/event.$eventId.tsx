@@ -123,12 +123,12 @@ function EventDetail() {
           <div className="flex items-center gap-6 mt-6 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              <span className="text-2xl font-semibold text-foreground tabular-nums">{event.views_count.toLocaleString()}</span>
+              <span className="text-2xl font-semibold text-foreground tabular-nums">{(event.views_count ?? 0).toLocaleString()}</span>
               <span className="text-xs">views</span>
             </div>
             <div className="flex items-center gap-2">
               <Heart className={`h-5 w-5 ${liked ? "fill-accent text-accent" : ""}`} />
-              <span className="text-2xl font-semibold text-foreground tabular-nums">{event.likes_count.toLocaleString()}</span>
+              <span className="text-2xl font-semibold text-foreground tabular-nums">{(event.likes_count ?? 0).toLocaleString()}</span>
               <span className="text-xs">likes</span>
             </div>
           </div>
