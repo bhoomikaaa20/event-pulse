@@ -10,6 +10,7 @@ import {
 } from "../controllers/event.controller";
 import { protect } from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/admin.middleware";
+import commentRoutes from "./comment.routes";
 
 
 const router = express.Router();
@@ -28,5 +29,8 @@ router.post("/:id/like", protect, toggleLike);
 router.post("/", protect, isAdmin, createEvent);
 router.put("/:id", protect, isAdmin, updateEvent);
 router.delete("/:id", protect, isAdmin, deleteEvent);
+
+// 💬 Comments sub-router
+router.use("/:id/comments", commentRoutes);
 
 export default router;

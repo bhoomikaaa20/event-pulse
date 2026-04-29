@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Heart, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { trendingScore, trendingLabel } from "@/lib/trending";
+import { CommentSection } from "@/components/CommentSection";
 import axios from "axios";
 
 export const Route = createFileRoute("/event/$eventId")({
@@ -17,6 +18,8 @@ function EventDetail() {
   const viewLogged = useRef(false);
   const [liked, setLiked] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   const { data: event } = useQuery({
     queryKey: ["event", eventId],
@@ -52,14 +55,11 @@ function EventDetail() {
         },
       })
         .then((res) => {
-          // backend should return liked events OR we check manually
+          setCurrentUserId(res.data.id || res.data._id);
+          setIsAdminUser(res.data.role === "admin");
 
-          // OPTION 1 (recommended backend): return liked events
           const likedEvents = res.data.likedEvents || [];
           setLiked(likedEvents.includes(eventId));
-
-          // OPTION 2 (if not implemented yet): skip like check
-          // setLiked(false);
         })
         .catch(() => {
           setAuthed(false);
@@ -155,6 +155,14 @@ function EventDetail() {
           )}
         </div>
       </div>
+
+      {/* Comments */}
+      <CommentSection
+        eventId={eventId}
+        authed={authed}
+        currentUserId={currentUserId}
+        isAdmin={isAdminUser}
+      />
     </div>
   );
 }
