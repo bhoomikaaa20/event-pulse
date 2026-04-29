@@ -26,7 +26,7 @@ function AuthPage() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   // Separate states (better practice)
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -51,6 +51,7 @@ function AuthPage() {
 
       localStorage.setItem("token", data.token);
       toast.success("Welcome back");
+      window.dispatchEvent(new Event("authChange")); // ✅ sync navbar instantly
       navigate({ to: "/" });
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Login failed");
@@ -65,18 +66,22 @@ function AuthPage() {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        {
-          name,
-          email: signupEmail,
-          password: signupPassword,
-        }
-      );
+      await axios.post("http://localhost:5000/api/auth/signup", {
+        name,
+        email: signupEmail,
+        password: signupPassword,
+      });
 
-      localStorage.setItem("token", data.token);
-      toast.success("Account created");
-      navigate({ to: "/" });
+      toast.success("Account created! Please sign in.");
+
+      // ✅ switch to login tab instead of dashboard
+      setActiveTab("login");
+
+      // ✅ clear signup fields
+      setName("");
+      setSignupEmail("");
+      setSignupPassword("");
+
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Signup failed");
     }
@@ -98,7 +103,7 @@ function AuthPage() {
         </div>
 
         <div className="rounded-2xl border border-border/50 bg-card p-6 shadow-card">
-          <Tabs defaultValue="login">
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "login" | "signup")}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Sign up</TabsTrigger>

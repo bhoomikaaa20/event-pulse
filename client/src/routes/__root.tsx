@@ -94,6 +94,7 @@ function Header({ isLoggedIn, isAdmin }: { isLoggedIn: boolean; isAdmin: boolean
               size="sm"
               onClick={() => {
                 localStorage.removeItem("token");
+                window.dispatchEvent(new Event("authChange")); // ✅ sync navbar instantly
                 window.location.href = "/";
               }}
               className="gap-2"
@@ -118,31 +119,38 @@ function RootComponent() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    // Re-usable: reads token and fetches role
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
 
-    if (!token) {
-      setIsLoggedIn(false);
-      setIsAdmin(false);
-      return;
-    }
-
-    setIsLoggedIn(true);
-
-    axios.get("http://localhost:5000/api/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        setIsAdmin(res.data.role === "admin");
-      })
-      .catch(() => {
+      if (!token) {
         setIsLoggedIn(false);
         setIsAdmin(false);
-      });
+        return;
+      }
 
+      setIsLoggedIn(true);
+
+      axios
+        .get("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setIsAdmin(res.data.role === "admin");
+        })
+        .catch(() => {
+          setIsLoggedIn(false);
+          setIsAdmin(false);
+        });
+    };
+
+    // Run on mount
+    checkAuth();
+
+    // Re-run whenever auth page dispatches this event (login / signup / logout)
+    window.addEventListener("authChange", checkAuth);
+    return () => window.removeEventListener("authChange", checkAuth);
   }, []);
 
   return (
